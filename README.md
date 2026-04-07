@@ -1,6 +1,6 @@
 # Frigusterio's saucy colorgrade generator
 
-Code your own colorgrades inside the appropiate section in the cg.c file!
+Code your own Celeste colorgrades inside the appropiate section in the cg.c file!
 
 Not user friendly!
 
