@@ -189,6 +189,46 @@ uint umin(uint a, uint b)
     return b;
 }
 
+typedef struct
+{
+    double position;
+    byte color[3];
+} ColorGradientNode;
+
+void colorGradient(ColorGradientNode gradient[], int gradientNodeCount, double position, byte out[3])
+{
+    //printf("Checking position %5.1lf\n", position);
+
+    if (position <= gradient[0].position)
+    {
+        out[0] = gradient[0].color[0];
+        out[1] = gradient[0].color[1];
+        out[2] = gradient[0].color[2];
+        //printf("  Position too small! lol!\n");
+        return;
+    }
+
+    for (int i = 0; i < gradientNodeCount - 1; i++)
+    {
+        if (gradient[i+1].position <= gradient[i].position) error_exit("Invalid gradient positions");
+
+        if (gradient[i].position <= position && position <= gradient[i+1].position)
+        {
+            double progress = (position - gradient[i].position) / (gradient[i+1].position - gradient[i].position);
+            out[0] = (byte)((1. - progress) * gradient[i].color[0] + progress * gradient[i+1].color[0]);
+            out[1] = (byte)((1. - progress) * gradient[i].color[1] + progress * gradient[i+1].color[1]);
+            out[2] = (byte)((1. - progress) * gradient[i].color[2] + progress * gradient[i+1].color[2]);
+            //printf("  Found my place at i = %d, progress = %3.2f\n", i, progress);
+            return;
+        }
+    }
+
+    out[0] = gradient[gradientNodeCount-1].color[0];
+    out[1] = gradient[gradientNodeCount-1].color[1];
+    out[2] = gradient[gradientNodeCount-1].color[2]; 
+    //printf("  Position too big! lol!\n");
+}
+
 /**
  * End of utils
  */
@@ -339,6 +379,30 @@ void astralizereduced(const byte in[3], byte out[3])
     out[2] = ((uint)in[0]+(uint)in[1]) / 2;
 }
 
+void protanopia(const byte in[3], byte out[3])
+{
+    byte hsvin[3];
+    rgb2hsv(in, hsvin);
+
+    ColorGradientNode gradient[7] = {
+        {.position=  0.0, .color={191, 178,   3}},
+        {.position= 42.7, .color={247, 254, 116}},
+        {.position= 85.3, .color={233, 239,  69}},
+        {.position=128.0, .color={218, 232, 207}},
+        {.position=170.7, .color={ 32,  71, 211}},
+        {.position=213.3, .color={ 80,  96, 243}},
+        {.position=256.0, .color={191, 178,   3}},
+    };
+
+    colorGradient(gradient, 7, (double)hsvin[0], out);
+
+    byte hsvout[3];
+    rgb2hsv(out, hsvout);
+    //hsvout[1] = hsvin[1];
+    hsvout[2] = (byte)(255*sqrt(hsvin[2] / 255.));
+    hsv2rgb(hsvout, out);
+}
+
 /**
  * End of Colorgrades
  */
@@ -394,8 +458,9 @@ int main(int argc, char *argv[])
             //brownbox(rgb_in, rgb_out);
             //neon(rgb_in, rgb_out);
             //astralizeoverflow(rgb_in, rgb_out);
-            astralize(rgb_in, rgb_out);
+            //astralize(rgb_in, rgb_out);
             //astralizereduced(rgb_in, rgb_out);
+            protanopia(rgb_in, rgb_out);
             
             buf_p[0] = rgb_out[0]; buf_p[1] = rgb_out[1]; buf_p[2] = rgb_out[2];
             buf_p += 3;
