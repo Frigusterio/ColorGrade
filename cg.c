@@ -403,6 +403,15 @@ void protanopia(const byte in[3], byte out[3])
     hsv2rgb(hsvout, out);
 }
 
+void variedgreens(const byte in[3], byte out[3])
+{
+    byte hsv[3];
+    rgb2hsv(in, hsv);
+    double greenRange = 15.0;
+    hsv[0] = (byte)(85. + greenRange*sin(2.*3.141592653589793/256.*(hsv[0] - 85.)));
+    hsv2rgb(hsv, out);
+}
+
 /**
  * End of Colorgrades
  */
@@ -460,7 +469,8 @@ int main(int argc, char *argv[])
             //astralizeoverflow(rgb_in, rgb_out);
             //astralize(rgb_in, rgb_out);
             //astralizereduced(rgb_in, rgb_out);
-            protanopia(rgb_in, rgb_out);
+            //protanopia(rgb_in, rgb_out);
+            variedgreens(rgb_in, rgb_out);
             
             buf_p[0] = rgb_out[0]; buf_p[1] = rgb_out[1]; buf_p[2] = rgb_out[2];
             buf_p += 3;
